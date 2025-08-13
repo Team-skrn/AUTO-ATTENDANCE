@@ -1,0 +1,54 @@
+name: Auto-Close Expired Sessions
+
+on:
+  schedule:
+    # Runs every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    # Allows manual triggering for testing
+
+jobs:
+  auto-close-sessions:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Auto-close expired sessions
+        run: |
+          echo "🔄 Starting auto-close process at $(date)"
+          
+          # Call Supabase function to close expired sessions
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/public_auto_close_sessions" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          
+          # Extract HTTP status code and response body
+          http_code=$(echo "$response" | tail -n1)
+          response_body=$(echo "$response" | head -n -1)
+          
+          echo "HTTP Status: $http_code"
+          echo "Response: $response_body"
+          
+          # Check if the request was successful
+          if [ "$http_code" -eq 200 ]; then
+            # Check if the response indicates success
+            if echo "$response_body" | grep -q '"success":true'; then
+              closed_count=$(echo "$response_body" | grep -o '"closed_count":[0-9]*' | cut -d':' -f2)
+              echo "✅ Auto-close completed successfully"
+              echo "📊 Closed $closed_count expired session(s)"
+            else
+              echo "⚠️ Auto-close function executed but may have encountered issues"
+              echo "$response_body"
+            fi
+          else
+            echo "❌ HTTP request failed with status $http_code"
+            echo "$response_body"
+            exit 1
+          fi
+
+      - name: Log completion
+        run: |
+          echo "🏁 Auto-close job completed at $(date)"
+          echo "Next run scheduled in 5 minutes"

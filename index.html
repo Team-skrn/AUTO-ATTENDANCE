@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Multi-Day Student Attendance System</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="header">
+        <h1>Student Attendance System</h1>
+        <nav class="nav-buttons">
+          <button id="homeBtn" class="nav-btn active">Home</button>
+          <button id="createBtn" class="nav-btn">Create Subject</button>
+          <button id="classesBtn" class="nav-btn">Manage Subjects</button>
+          <button id="reportsBtn" class="nav-btn">Reports</button>
+        </nav>
+      </header>
+      
+      <main class="main-content">
+        <!-- Home View -->
+        <div id="homeView" class="view">
+          <section class="panel">
+            <h2>Welcome to the Multi-Day Attendance System</h2>
+            <p>This system allows you to:</p>
+            <ul>
+              <li>Create subjects with multiple sessions across different dates</li>
+              <li>Generate QR codes for easy student access</li>
+              <li>Track attendance with comprehensive reporting</li>
+              <li>Export attendance data as CSV files</li>
+            </ul>
+            <p>Use the navigation buttons above to get started!</p>
+          </section>
+        </div>
+
+        <!-- Create Subject View -->
+        <div id="createSubjectView" class="view" style="display: none;">
+          <section class="panel">
+            <h2>Create New Subject</h2>
+            <div class="form-group">
+              <input type="text" id="subjectName" placeholder="Subject Name (e.g., Data Structures)" />
+              <textarea id="subjectDescription" placeholder="Subject Description (optional)" rows="3"></textarea>
+              <button id="createSubjectBtn" class="btn-primary">Create Subject</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Subject Management View -->
+        <div id="subjectView" class="view" style="display: none;">
+          <section class="panel">
+            <h2>Manage Subjects</h2>
+            <div id="subjectsList" class="subjects-list">
+              <p>Loading subjects...</p>
+            </div>
+          </section>
+        </div>
+
+        <!-- Session Management View -->
+        <div id="sessionView" class="view" style="display: none;">
+          <section class="panel">
+            <h2>Manage Sessions for <span id="currentSubjectName"></span></h2>
+            
+            <!-- Create New Session -->
+            <div class="session-creation">
+              <h3>Create New Session</h3>
+              <div class="form-group">
+                <input type="date" id="sessionDate" />
+                <input type="time" id="sessionTime" />
+                
+                <!-- Timer Options -->
+                <div class="timer-options">
+                  <label for="sessionTimer">Auto-close session after:</label>
+                  <select id="sessionTimer">
+                    <option value="none">No auto-close (manual)</option>
+                    <option value="15">15 minutes</option>
+                    <option value="30">30 minutes</option>
+                    <option value="45">45 minutes</option>
+                    <option value="60">1 hour</option>
+                    <option value="90">1.5 hours</option>
+                    <option value="120">2 hours</option>
+                    <option value="180">3 hours</option>
+                    <option value="custom">Custom duration</option>
+                  </select>
+                  
+                  <div id="customTimerDiv" style="display: none;">
+                    <input type="number" id="customTimer" placeholder="Minutes" min="1" max="1440" />
+                    <span>minutes</span>
+                  </div>
+                </div>
+                
+                <div class="info-box">
+                  <h4>📋 Attendance Timing Information</h4>
+                  <ul>
+                    <li>Students can mark attendance <strong>10 minutes before</strong> the scheduled session time</li>
+                    <li>Attendance remains open until the session is manually closed or auto-closed by timer</li>
+                    <li>Early access helps accommodate students arriving ahead of time</li>
+                  </ul>
+                </div>
+                
+                <button id="createSessionBtn" class="btn-primary">Create Session</button>
+              </div>
+            </div>
+
+            <!-- Sessions List -->
+            <div class="sessions-container">
+              <h3>Existing Sessions</h3>
+              <div id="sessionsList" class="sessions-list">
+                <p>Loading sessions...</p>
+              </div>
+            </div>
+
+            <!-- QR Code Display -->
+            <div id="qrCode" class="qr-display" style="display: none;">
+              <h3>QR Code for Attendance</h3>
+              <canvas id="qrCanvas"></canvas>
+              <p>Share this QR code with students:</p>
+              <div id="attendanceUrl" class="url-display"></div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Student Attendance View -->
+        <div id="attendanceView" class="view" style="display: none;">
+          <section class="panel student-panel">
+            <h2>Mark Your Attendance</h2>
+            <div id="classInfo" class="class-info-display"></div>
+            
+            <!-- Anti-proxy warning -->
+            <div class="warning-box">
+              <h4>⚠️ Important Notice</h4>
+              <ul>
+                <li>Mark attendance ONLY for yourself</li>
+                <li>Use your own device and internet connection</li>
+                <li>Proxy attendance for others is strictly prohibited</li>
+                <li>Violations will be reported to Disciplinary Committee</li>
+              </ul>
+            </div>
+            
+            <div class="form-group">
+              <input type="text" id="studentName" placeholder="Enter Your Full Name" />
+              <input type="text" id="studentId" placeholder="Enter Your Student ID" />
+              <button id="markAttendanceBtn" class="btn-primary">Mark Attendance</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Reports View -->
+        <div id="reportsView" class="view" style="display: none;">
+          <section class="panel full-width">
+            <h2>Attendance Reports</h2>
+            <div class="report-controls">
+              <div class="form-group">
+                <select id="reportSubject">
+                  <option value="">Select Subject</option>
+                </select>
+                <select id="reportType">
+                  <option value="daily">Daily Report</option>
+                  <option value="weekly">Weekly Report</option>
+                  <option value="monthly">Monthly Report</option>
+                  <option value="range">Date Range Report</option>
+                </select>
+              </div>
+              
+              <div class="date-controls">
+                <input type="date" id="startDate" placeholder="Start Date" />
+                <input type="date" id="endDate" placeholder="End Date" />
+                <button id="generateReportBtn" class="btn-primary">Generate Report</button>
+                <button id="downloadReportBtn" class="btn-secondary" style="display: none;">Download CSV</button>
+              </div>
+            </div>
+            
+            <div id="reportResults" class="report-results"></div>
+          </section>
+        </div>
+      </main>
+
+      <!-- Password Modal for Admin Access -->
+      <div id="passwordModal" class="modal" style="display: none;">
+        <div class="modal-content">
+          <h3>Admin Access Required</h3>
+          <p>Please enter the admin password to continue:</p>
+          <div class="form-group">
+            <input type="password" id="passwordInput" placeholder="Enter admin password" />
+            <div class="modal-buttons">
+              <button id="passwordSubmit" class="btn-primary">Submit</button>
+              <button id="modalCancel" class="btn-secondary">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Session Attendance Modal -->
+      <div id="sessionAttendanceModal" class="modal" style="display: none;">
+        <div class="modal-content modal-large">
+          <h3>Session Attendance Details</h3>
+          <div id="sessionAttendanceInfo" class="session-info"></div>
+          <div id="sessionAttendanceList" class="attendance-list"></div>
+          <div id="sessionSuspiciousActivity" class="suspicious-activity"></div>
+          <div class="modal-buttons">
+            <button id="downloadSessionAttendance" class="btn-primary">
+              📥 Download CSV Report
+            </button>
+            <button id="closeSessionModal" class="btn-secondary">
+              ✕ Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "auto-attendance",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Student attendance tracking system with daily-changing URLs and QR codes",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && npx gh-pages -d dist"
+  },
+  "keywords": ["attendance", "student", "qr-code", "supabase", "education"],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^7.0.4"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.53.0",
+    "qrcode": "^1.5.4"
+  }
+}
